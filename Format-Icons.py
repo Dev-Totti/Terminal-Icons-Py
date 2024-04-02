@@ -112,30 +112,6 @@ def getIconColor(filename, itemType, junction=False):
     return itemIcon, itemColor
 
 
-# def resolveIcon1(filename, itemType):
-#     filename = filename.lower()
-#     _, ext = os.path.splitext(filename)
-
-#     if filename in icons[itemType]["WellKnown"]:
-#         return icons[itemType]["WellKnown"][filename]
-#     elif ext in icons[itemType]:
-#         return icons[itemType][ext]
-#     else:
-#         return icons[itemType][""]
-
-
-# def resolveColor1(filename, itemType):
-#     filename = filename.lower()
-#     _, ext = os.path.splitext(filename)
-
-#     if filename in colors[itemType]["WellKnown"]:
-#         return convertHexToSeq(colors[itemType]["WellKnown"][filename])
-#     elif ext in colors[itemType]:
-#         return convertHexToSeq(colors[itemType][ext])
-#     else:
-#         return ""
-
-
 def convertHexToSeq(hexColor):
     red = int(hexColor[0:2], 16)
     green = int(hexColor[2:4], 16)
