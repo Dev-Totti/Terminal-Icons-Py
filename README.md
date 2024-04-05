@@ -7,6 +7,7 @@ This Python script provides a convenient way to list all files in a directory in
 - **Column View**: Display files and folders in a column layout for easy readability.
 - **Automatic Column Calculation**: Adjusts the number of columns based on the terminal width.
 - **Dynamic Column Width**: Each column dynamically adjusts its width depending on its content.
+- **Details View**: This view provides file/dir size, attributes, and full path.
 - **Nerd Font Icons**: Each file and folder is represented by a Nerd Font icon for added visual clarity.
 - **Color Coding**: Utilizes color to distinguish between different types of files and folders.
 
@@ -20,7 +21,7 @@ python Terminal-Icons.py
 #### Arguments:
 
 ```bash
-python Terminal-Icons.py [-p <path>] [-f <filter>] [-c <columns>] [-r] [-a]
+python Terminal-Icons.py [-p <path>] [-f <filter>] [-c <columns>] [-r] [-a] [-d]
 ```
 -p, --path <path>: Specify the directory path.
 
@@ -32,6 +33,7 @@ python Terminal-Icons.py [-p <path>] [-f <filter>] [-c <columns>] [-r] [-a]
 
 -a, --all: Show hidden files.
 
+-d, --detail: Shows details view with additional information (file/dir size, attributes, and full path)
 #### Dependencies:
 
 - Python 3.x
@@ -51,5 +53,11 @@ This project is licensed under the [MIT License](LICENSE). Feel free to use, mod
 - This project is inspired by the functionality of the `ls` command in Linux.
 
 #### Screenshots:
+Columns View:
 
 ![Screenshot 2024-04-01 184750](https://github.com/Dev-Totti/Terminal-Icons-Py/assets/92545913/7b25bc45-ae03-4d9d-a2ef-6af4e536a12f)
+
+Details View:
+
+![2](https://github.com/Dev-Totti/Terminal-Icons-Py/assets/92545913/241cb888-4b2a-4036-a352-98ccd76a14eb)
+
