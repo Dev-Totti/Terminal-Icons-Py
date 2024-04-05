@@ -50,7 +50,9 @@
             ".aws": "dev-aws",
             ".kube": "md-ship_wheel",
             ".docker": "dev-docker",
-            "umbraco": "md-umbraco"
+            "umbraco": "md-umbraco",
+            "software": "cod-package",
+            "mobile": "cod-device_mobile"
         }
     },
     "Files": {

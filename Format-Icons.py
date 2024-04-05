@@ -10,6 +10,7 @@ def getArguments():
     parser.add_argument("-c", "--columns", help="Number of Columns")
     parser.add_argument("-r", "--recurse", action="store_true", help="Recurse Files")
     parser.add_argument("-a", "--all", action="store_true", help="Show Hidden Files")
+    parser.add_argument("-d", "--detail", action="store_true", help="Show File Details")
 
     args = parser.parse_args()
 
@@ -17,9 +18,10 @@ def getArguments():
     filter = args.filter if args.filter else "*"
     hidden = args.all
     recurse = args.recurse
+    detail = args.detail
     columns = int(args.columns) if args.columns else None
 
-    return path, filter, hidden, recurse, columns
+    return path, filter, hidden, recurse, detail, columns
 
 
 def loadJSONFile(file):
@@ -168,7 +170,6 @@ def getMaxColumns(filenames, padding=0):
 def displayIcons(filesInfo, numCols=1, padding=0):
     fileNames = [file["Filename"] for file in filesInfo]
     terminalWidth = getTerminalWidth()
-    resetCode = f"\033[0m"
 
     if numCols == None:
         numCols = getMaxColumns(fileNames, padding)
@@ -216,12 +217,118 @@ def displayIcons(filesInfo, numCols=1, padding=0):
         print(outputRows.rstrip())
 
 
+def getAttributes(filepath):
+    attribute_symbols = {
+        "D": lambda path: "d" if os.path.isdir(path) else "-",
+        "A": lambda st: "a" if st.st_file_attributes & 0x20 else "-",
+        "R": lambda st: "r" if st.st_file_attributes & 0x01 else "-",
+        "H": lambda st: "h" if st.st_file_attributes & 0x02 else "-",
+        "S": lambda st: "s" if st.st_file_attributes & 0x04 else "-",
+    }
+
+    st = os.stat(filepath)
+    attributes = [
+        attribute_symbols[key](filepath if key == "D" else st)
+        for key in attribute_symbols
+    ]
+
+    return "".join(attributes)
+
+
+def formatSize(size):
+    units = ["-B", "KB", "MB", "GB", "TB"]
+    unit_index = 0
+    while size >= 1024 and unit_index < len(units) - 1:
+        size /= 1024.0
+        unit_index += 1
+
+    decimal_places = 2 if unit_index > 1 else 0
+
+    return f"{size:.{decimal_places}f} {units[unit_index]}"
+
+
+def displayDetails(filesInfo, recurse=False):
+    terminalWidth = getTerminalWidth()
+
+    filenames = [fileInfo["Filename"] for fileInfo in filesInfo]
+    basenames = [fileInfo["FileBase"] for fileInfo in filesInfo]
+
+    MaxNameLen = max(len(name) for name in filenames)
+    MaxBaseLen = max(len(name) for name in basenames)
+
+    AvgNameLen = int(sum(len(name) for name in filenames) / len(filenames) * 1.2)
+
+    MaxRowLen = MaxNameLen + MaxBaseLen + 20
+
+    if MaxRowLen > terminalWidth:
+        MaxNameLen = AvgNameLen
+
+    EmptySpace = terminalWidth - MaxNameLen - 20
+
+    for file in filesInfo:
+        filePath = file["FilePath"]
+        fileBase = file["FileBase"]
+        fileName = file["Filename"]
+        fileColor = file["Color"]
+        fileIcon = glyphs[file["Icon"]]["char"]
+
+        itemName = fileName.ljust(MaxNameLen)[:MaxNameLen]
+        itemName = itemName[:-1] + "…" if len(itemName) < len(fileName) else itemName
+        itemName = f"{fileColor}{fileIcon}  {itemName}{resetCode}"
+
+        if os.path.isdir(filePath):
+            itemSize = sum(
+                os.path.getsize(os.path.join(root, f))
+                for root, _, files in os.walk(filePath)
+                for f in files
+            )
+        else:
+            itemSize = os.stat(filePath).st_size
+
+        itemSize = formatSize(itemSize)
+        itemMode = getAttributes(filePath)
+
+        print(f"{itemMode} {itemName} {itemSize:>9}", end="")
+
+        if recurse:
+            overflowPrint(fileBase, EmptySpace, MaxNameLen + 20)
+        else:
+            print()
+
+        # remaining = ""
+        # if len(fileBase) > EmptySpace:
+        #     remaining = fileBase[EmptySpace:]
+        #     fileBase = fileBase[:EmptySpace]
+        # print(f"{' ' * (MaxNameLen + 20)}{filebaseColor}{remaining}{resetCode}")
+
+
+def overflowPrint(text, length, offset, aux=False):
+    print("\033[38;2;120;120;120m", end="")
+    if aux:
+        if len(text) > length:
+            print(f"{' ' * offset}{text[:length]}")
+            overflowPrint(text[length:], length, offset, True)
+        else:
+            print(f"{' ' * offset}{text}")
+    else:
+        if len(text) > length:
+            print(f" {text[:length]}")
+            overflowPrint(text[length:], length, offset, True)
+        else:
+            print(f" {text}")
+    print(resetCode, end="")
+
+
 if __name__ == "__main__":
+    resetCode = f"\033[0m"
     icons, colors, glyphs = loadJSONFiles()
-    path, filter, hidden, recurse, columns = getArguments()
+    path, filter, hidden, recurse, detail, columns = getArguments()
     files = listFiles(path, filter, hidden, recurse)
 
     if files == []:
         sys.exit()
 
-    displayIcons(files, columns, 6)
+    if detail:
+        displayDetails(files, recurse)
+    else:
+        displayIcons(files, columns, 6)
